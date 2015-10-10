@@ -34,9 +34,21 @@
                 </configuration>
             </plugin>
             <plugin>
-              <groupId>io.atomicbits</groupId>
-              <artifactId>scraml-maven-plugin</artifactId>
-              <version>0.3.3-SNAPSHOT</version>
+                <groupId>io.atomicbits</groupId>
+                <artifactId>scraml-maven-plugin</artifactId>
+                <version>0.3.4-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>generate-client-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <ramlApi>/io/atomicbits/scraml/TestClient01.raml</ramlApi>
+                        </configuration>
+                        <goals>
+                            <goal>scraml</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -47,5 +59,20 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.atomicbits</groupId>
+            <artifactId>scraml-dsl-java</artifactId>
+            <version>0.3.4-SNAPSHOT</version>
+        </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>oss-sonatype</id>
+            <name>oss-sonatype</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
