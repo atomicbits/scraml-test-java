@@ -2,15 +2,16 @@
 /:
   get:
     queryParameters:
-      age:
-        description: The age of the user.
-        type: number
       firstName:
         description: The firstname of the user.
         type: string
+        required: true
       lastName:
         description: The last name of the user.
         type: string
+      age:
+        description: The age of the user.
+        type: integer
       organization:
         description: The organization of the user.
         type: string

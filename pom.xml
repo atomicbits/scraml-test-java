@@ -54,15 +54,26 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>io.atomicbits</groupId>
+            <artifactId>scraml-dsl-java</artifactId>
+            <version>0.3.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.atomicbits</groupId>
-            <artifactId>scraml-dsl-java</artifactId>
-            <version>0.3.4-SNAPSHOT</version>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>1.56</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <repositories>
