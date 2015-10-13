@@ -221,31 +221,30 @@ public class RamlModelGeneratorTest {
         User user = new User(
                 new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
                 21L,
-                "Doe",
+                "John",
                 new Link(null, "http://foo.bar", LinkMethod.GET),
                 "1",
-                "John");
+                "Doe");
 
         ObjectMapper objectMapper = new ObjectMapper();
+
+        List<User> users = Collections.singletonList(user);
 
         try {
             stubFor(
                     put(urlEqualTo("/rest/user/activate"))
                             .withHeader("Content-Type", equalTo("application/vnd-v1.0+json"))
                             .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
-                            .withRequestBody(equalTo(objectMapper.writeValueAsString(user)))
+                            .withRequestBody(equalTo(objectMapper.writeValueAsString(users)))
                             .willReturn(
                                     aResponse()
-                                            .withBody(objectMapper.writeValueAsString(user))
+                                            .withBody(objectMapper.writeValueAsString(users))
                                             .withStatus(200)
                             )
             );
         } catch (JsonProcessingException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
-
-
-        List<User> users = Collections.singletonList(user);
 
         CompletableFuture<Response<List<User>>> listBodyResponse =
                 client.rest.user.activate.addHeader("Content-Type", "application/vnd-v1.0+json").put(users);
