@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import io.atomicbits.schema.Link;
-import io.atomicbits.schema.LinkMethod;
-import io.atomicbits.schema.User;
-import io.atomicbits.schema.UserDefinitionsAddress;
+import io.atomicbits.schema.*;
 import io.atomicbits.scraml.dsl.java.BodyPart;
 import io.atomicbits.scraml.dsl.java.Response;
 import io.atomicbits.scraml.dsl.java.StringPart;
@@ -23,10 +20,7 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
@@ -83,7 +77,7 @@ public class RamlModelGeneratorTest {
             assertEquals(expectedUser.getAge(), user.getAge());
             assertEquals(expectedUser.getAddress().getCity(), user.getAddress().getCity());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            e.printStackTrace();
+            fail("Did not expect exception: " + e.getMessage());
         }
 
     }
@@ -253,6 +247,71 @@ public class RamlModelGeneratorTest {
             List<User> receivedUsers = listBodyResponse.get(10, TimeUnit.SECONDS).getBody();
             assertEquals(1, receivedUsers.size());
             assertEquals("John", receivedUsers.get(0).getFirstName());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void classHierarcyRequestTest() {
+
+        Animal theAnimal = new Dog(true, "female", "Ziva");
+        List<Animal> dogs = Collections.singletonList(theAnimal);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        stubFor(
+                get(urlEqualTo("/rest/animals"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("[{\"_type\":\"Dog\",\"canBark\":true,\"gender\":\"female\",\"name\":\"Ziva\"}]")
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<List<Animal>>> eventualAnimal = client.rest.animals.get();
+
+        try {
+            List<Animal> animals = eventualAnimal.get(10, TimeUnit.SECONDS).getBody();
+            assertEquals(1, animals.size());
+            Animal animal = animals.get(0);
+            assertTrue(animal instanceof Dog);
+            Dog theDog = (Dog) animal;
+            assertEquals("Ziva", theDog.getName());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void putListRequestTest() {
+
+        List<Animal> animals = Arrays.asList(
+                new Dog(true, "male", "Wiskey"),
+                new Fish("Wanda"),
+                new Cat("male", "Duster")
+        );
+
+        stubFor(
+                put(urlEqualTo("/rest/animals"))
+                        .withRequestBody(equalTo("[{\"_type\":\"Dog\",\"canBark\":true,\"gender\":\"male\",\"name\":\"Wiskey\"},{\"_type\":\"Fish\",\"gender\":\"Wanda\"},{\"_type\":\"Cat\",\"gender\":\"male\",\"name\":\"Duster\"}]"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("[{\"_type\":\"Cat\",\"gender\":\"female\",\"name\":\"Orelia\"}]")
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<List<Animal>>> eventualAnimals = client.rest.animals.put(animals);
+
+        try {
+            List<Animal> receivedAnimals = eventualAnimals.get(10, TimeUnit.SECONDS).getBody();
+            assertEquals(1, receivedAnimals.size());
+            Animal animal = receivedAnimals.get(0);
+            assertTrue(animal instanceof Cat);
+            Cat orelia = (Cat) animal;
+            assertEquals("Orelia", orelia.getName());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
