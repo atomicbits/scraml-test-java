@@ -254,12 +254,7 @@ public class RamlModelGeneratorTest {
 
 
     @Test
-    public void classHierarcyRequestTest() {
-
-        Animal theAnimal = new Dog(true, "female", "Ziva");
-        List<Animal> dogs = Collections.singletonList(theAnimal);
-
-        ObjectMapper objectMapper = new ObjectMapper();
+    public void classListAndGenericsRequestTest() {
 
         stubFor(
                 get(urlEqualTo("/rest/animals"))
