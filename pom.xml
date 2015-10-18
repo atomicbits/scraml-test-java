@@ -80,12 +80,18 @@
         <repository>
             <id>oss-sonatype</id>
             <name>oss-sonatype</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>oss-sonatype-plugin</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </pluginRepository>
+    </pluginRepositories>
     <distributionManagement>
         <!--see: http://central.sonatype.org/pages/apache-maven.html -->
         <!--and: http://notbarjo.blogspot.be/2014/09/travis-ci-maven-deploy.html -->
