@@ -5,11 +5,3 @@ notifications:
   email:
     recipients:
     - peter.rigole@atomicbits.io
-after_success:
-- echo "<settings><servers><server><id>ossrh</id><username>\${env.SONATYPE_USERNAME}</username><password>\${env.SONATYPE_PASSWORD}</password></server></servers></settings>" > ~/settings.xml
-- '[[ $TRAVIS_BRANCH == "develop" ]] && { mvn deploy --settings ~/settings.xml ; };'
-
-env:
-  global:
-  - secure: WiK+nlQ+nbYmKGrXApNuO+ZmUj+G59TM88Rf1pz/My8B2UHxosfZ6BecWjAcwBEXdvgWrmRTLHzZGdVcGgXYQjR33VHUQZUnKznmO25qzBe+2ZRGhUpUWnh+jDIYNq47LyAbavZtp5ui8RkwaB4EgRvQcbjDWsZPwRUojQjsZo/f4PH1hMWOCHrJLJWsO1f6bK6BD1EXa0qFM8TCxFtym8ASYYG80gNj7JXzzVUDM8g43tRirZ8q7A+vFRJNIhPeS4kta578unwsk9EStLbJ19JnkXOIZuX7XXGglv86W3+KL9hSiqzrGYDoEOg8KLBE97IkBFt/9FlRbaqR82fduiRjJ3SYNl6K5MJz21OImuDRwKr6VGGQNQDRfafm/y6PvGc2er1R5Y0exZZbqwSxj+GrFgEwAq0iqjNyyJ3XFv//CARq3U6DSv6NPz0zJyUDqXgxS7AuFwfV/sN95mc72yeVdC4LTxv4F4CtkYSbCKvmD5xtfgyjC50cWrOMx3NMyf2Vuv1ZztC/4LhT6WEVcFbr3I/mWZ7CeI8SyzTVHRcGPXmlMgx2kkiKDGEiQ2wfecIWCDBMfBzj68lPTDzkvE8Ql6W37MBraupkOHLNmBqoaSDoDZ8aCvPqLqheHciy0T7pLzVKKrC2RTSGVOpa+Lg4aiiCBCu+kL1MvmmsPig=
-  - secure: Vz7nVqrO14CXNoT5ziCcRzXBIAo14AruQzrTyGbC9Se9LJFa2jF8FqqYvRl5YAUZwAHRKDX4vjeA+3lmZFqPaYKYvqFwVqvRu3b4V0OaBcuT2IEk3cAsssSjDCe8ZbrFF6GTM6ehmJoultQThrQKyOiCVySfNCAWvoTtalqN0hKqGBkpVs7PMbi/X4wauRRobbm1axXPH9KA/DGCwpan3WWkKZJJpxmc1Unuc+b89GaK4e72RS2HPiIrsj13WN/N9nAVuyTFYerOCUQE/XvfbavOdU3+XO9ieCLUSVJEj3G0+IWsvIg7pBrLQJ0ZAexSjICS5mXPmz0HPQz4s0ONWvm1cBvIQ1nLY8YUA26w95TReyqzMxGKgrE5Ocj6D52+m8KgWlbrRF5/ZATHJQ3EbFprgP7ZAhtiQcX7rKMSYGeo0IW7/xoKSrBdhdLzYXscxvzcAvQXL7up0asoGQh0TwB6VlVSsGW3mlkynK5FWP7G31HPKhjObmN7i9HjkDJFQkfGsmCMw1or5dfLFEHOmhYwAFr71b46QhE0CTN1/yiNV0yj3/xRfScg2x7lHhYLpenBppfGMaEavNk9gsejHeZZzlJhIhWzPCrwPiXXkjrJOPZ+Gt6/34/lLPdzRZcqBX+3PIN8VkJFmlT2jLEXO5prOFCSUkLdqFqhiboRjas=

@@ -92,18 +92,4 @@
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </pluginRepository>
     </pluginRepositories>
-    <distributionManagement>
-        <!--see: http://central.sonatype.org/pages/apache-maven.html -->
-        <!--and: http://notbarjo.blogspot.be/2014/09/travis-ci-maven-deploy.html -->
-        <repository>
-            <id>ossrh</id>
-            <name>OSS Releases</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-        </repository>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <name>OSS SNAPSHOT Releases</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>
