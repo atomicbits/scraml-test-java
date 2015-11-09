@@ -118,11 +118,11 @@ public class RamlModelGeneratorTest {
                 new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
                 21L,
                 "Doe",
-                new Link(null, "http://foo.bar", LinkMethod.GET),
+                new Link(null, "http://foo.bar", Method.GET),
                 "1",
                 "John");
 
-        Link link = new Link(null, "http://foo.bar", LinkMethod.GET);
+        Link link = new Link(null, "http://foo.bar", Method.GET);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -216,7 +216,7 @@ public class RamlModelGeneratorTest {
                 new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
                 21L,
                 "John",
-                new Link(null, "http://foo.bar", LinkMethod.GET),
+                new Link(null, "http://foo.bar", Method.GET),
                 "1",
                 "Doe");
 
@@ -284,13 +284,13 @@ public class RamlModelGeneratorTest {
 
         List<Animal> animals = Arrays.asList(
                 new Dog(true, "male", "Wiskey"),
-                new Fish("Wanda"),
+                new Fish("female"),
                 new Cat("male", "Duster")
         );
 
         stubFor(
                 put(urlEqualTo("/rest/animals"))
-                        .withRequestBody(equalTo("[{\"_type\":\"Dog\",\"canBark\":true,\"gender\":\"male\",\"name\":\"Wiskey\"},{\"_type\":\"Fish\",\"gender\":\"Wanda\"},{\"_type\":\"Cat\",\"gender\":\"male\",\"name\":\"Duster\"}]"))
+                        .withRequestBody(equalTo("[{\"_type\":\"Dog\",\"gender\":\"male\",\"canBark\":true,\"name\":\"Wiskey\"},{\"_type\":\"Fish\",\"gender\":\"female\"},{\"_type\":\"Cat\",\"gender\":\"male\",\"name\":\"Duster\"}]"))
                         .willReturn(
                                 aResponse()
                                         .withBody("[{\"_type\":\"Cat\",\"gender\":\"female\",\"name\":\"Orelia\"}]")
