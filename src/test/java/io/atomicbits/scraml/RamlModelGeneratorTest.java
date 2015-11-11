@@ -147,7 +147,7 @@ public class RamlModelGeneratorTest {
 
         CompletableFuture<Response<Link>> eventualPutResponse =
                 userFoobarResource
-                        ._contentApplicationVndV10Json
+                        .contentApplicationVndV10Json
                         .put(user);
 
         try {
