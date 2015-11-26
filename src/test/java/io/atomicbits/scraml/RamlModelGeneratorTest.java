@@ -1,7 +1,10 @@
 package io.atomicbits.scraml;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -63,11 +66,18 @@ public class RamlModelGeneratorTest {
                                         "\"firstName\":\"John\", " +
                                         "\"lastName\": \"Doe\", " +
                                         "\"age\": 21, " +
-                                        "\"id\": \"1" +
-                                        "\"}")
+                                        "\"id\": \"1\"," +
+                                        "\"other\": {\"text\": \"foobar\"}" +
+                                        "}")
                         .withStatus(200)));
 
-        User expectedUser = new User(new UserDefinitionsAddress("LA", "California", "Mulholland Drive"), 21L, "John", null, "1", "Doe");
+
+        JsonNodeFactory nodeFactory = new JsonNodeFactory(false);
+        ObjectNode node = nodeFactory.objectNode();
+        node.put("text", "foobar");
+
+
+        User expectedUser = new User(new UserDefinitionsAddress("LA", "California", "Mulholland Drive"), 21L, "John", null, "1", "Doe", node);
 
         CompletableFuture<Response<User>> eventualUser = userResource.get(51L, "John", null, Arrays.asList("ESA", "NASA"));
         try {
@@ -120,7 +130,8 @@ public class RamlModelGeneratorTest {
                 "Doe",
                 new Link(null, "http://foo.bar", Method.GET),
                 "1",
-                "John");
+                "John",
+                null);
 
         Link link = new Link(null, "http://foo.bar", Method.GET);
 
@@ -218,7 +229,8 @@ public class RamlModelGeneratorTest {
                 "John",
                 new Link(null, "http://foo.bar", Method.GET),
                 "1",
-                "Doe");
+                "Doe",
+                null);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
