@@ -43,7 +43,7 @@ public class RamlModelGeneratorTest {
         wireMockServer.start();
         WireMock.configureFor(host, port);
         Map<String, String> defaultHeaders = new HashMap<>();
-        defaultHeaders.put("Accept", "application/vnd-v1.0+json");
+        // defaultHeaders.put("Accept", "application/vnd-v1.0+json");
         client = new TestClient01(host, port, "http", null, new ClientConfig(), defaultHeaders);
     }
 
@@ -101,8 +101,8 @@ public class RamlModelGeneratorTest {
         stubFor(
                 post(urlEqualTo("/rest/user/foobar"))
                         .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
-                        .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
-                        .withRequestBody(equalTo("text=Hello%20Foobar"))
+                        .withHeader("Accept", equalTo("*/*"))
+                        .withRequestBody(equalTo("text=Hello-Foobar")) // "text=Hello%20Foobar"
                         .willReturn(
                                 aResponse()
                                         .withBody("Post OK")
@@ -110,7 +110,7 @@ public class RamlModelGeneratorTest {
                         )
         );
 
-        CompletableFuture<Response<String>> eventualPostResponse = userFoobarResource.post("Hello Foobar", null);
+        CompletableFuture<Response<String>> eventualPostResponse = userFoobarResource.post("Hello-Foobar", null);
         try {
             String responseText = eventualPostResponse.get(10, TimeUnit.SECONDS).getBody();
             assertEquals("Post OK", responseText);
@@ -178,7 +178,7 @@ public class RamlModelGeneratorTest {
 
         stubFor(
                 delete(urlEqualTo("/rest/user/foobar"))
-                        .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
+                        .withHeader("Accept", equalTo("*/*"))
                         .willReturn(
                                 aResponse()
                                         .withBody("Delete OK")
