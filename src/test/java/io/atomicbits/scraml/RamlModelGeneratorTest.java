@@ -128,12 +128,12 @@ public class RamlModelGeneratorTest {
                 new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
                 21L,
                 "Doe",
-                new Link(null, "http://foo.bar", Method.GET),
+                new Link(null, "http://foo.bar", Method.space),
                 "1",
                 "John",
                 null);
 
-        Link link = new Link(null, "http://foo.bar", Method.GET);
+        Link link = new Link(null, "http://foo.bar", Method.$8Trees);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -262,6 +262,35 @@ public class RamlModelGeneratorTest {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
+    }
+
+
+    @Test
+    public void listPostRequestTest() {
+
+
+        stubFor(
+                post(urlEqualTo("/rest/animals"))
+                        .withRequestBody(equalTo("[\"1\",\"2\"]"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("[{\"_type\":\"Dog\",\"canBark\":true,\"gender\":\"female\",\"name\":\"Ziva\"}]")
+                                        .withStatus(200)
+                        )
+        );
+
+
+        List<String> ids = Arrays.asList("1", "2");
+        CompletableFuture<Response<List<Animal>>> listBodyResponse =
+                client.rest.animals.post(new ArrayList<>(ids));
+
+        try {
+            List<Animal> receivedUsers = listBodyResponse.get(10, TimeUnit.SECONDS).getBody();
+            assertEquals(1, receivedUsers.size());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+
     }
 
 

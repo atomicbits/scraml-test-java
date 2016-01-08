@@ -7,10 +7,10 @@
     <groupId>io.atomicbits</groupId>
     <artifactId>scraml-test-java</artifactId>
     <packaging>jar</packaging>
-    <version>0.4.4-SNAPSHOT</version>
+    <version>0.4.6</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scraml.version>0.4.4-SNAPSHOT</scraml.version>
+        <scraml.version>0.4.6</scraml.version>
     </properties>
     <developers>
         <developer>
