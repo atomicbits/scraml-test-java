@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.atomicbits.schema.*;
+import io.atomicbits.scraml.dsl.java.BinaryData;
 import io.atomicbits.scraml.dsl.java.BodyPart;
 import io.atomicbits.scraml.dsl.java.Response;
 import io.atomicbits.scraml.dsl.java.StringPart;
@@ -458,6 +459,29 @@ public class RamlModelGeneratorTest {
             Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
             assertEquals(200, response.getStatus());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void binaryDownloadTest() {
+        stubFor(
+                get(urlEqualTo("/rest/animals/datafile/download"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody(binaryData())
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<BinaryData>> eventualResponse = client.rest.animals.datafile.download.get();
+
+        try {
+            Response<BinaryData> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+            assertArrayEquals(binaryData(), response.getBody().asBytes());
+        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
     }
