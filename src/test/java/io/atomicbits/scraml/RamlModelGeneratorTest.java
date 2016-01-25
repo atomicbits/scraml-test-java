@@ -9,6 +9,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.atomicbits.schema.*;
+import io.atomicbits.scraml.dsl.java.BinaryData;
 import io.atomicbits.scraml.dsl.java.BodyPart;
 import io.atomicbits.scraml.dsl.java.Response;
 import io.atomicbits.scraml.dsl.java.StringPart;
@@ -21,7 +22,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -128,12 +134,12 @@ public class RamlModelGeneratorTest {
                 new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
                 21L,
                 "Doe",
-                new Link(null, "http://foo.bar", Method.GET),
+                new Link(null, "http://foo.bar", Method.space),
                 "1",
                 "John",
                 null);
 
-        Link link = new Link(null, "http://foo.bar", Method.GET);
+        Link link = new Link(null, "http://foo.bar", Method.$8Trees);
 
         ObjectMapper objectMapper = new ObjectMapper();
 
@@ -266,6 +272,35 @@ public class RamlModelGeneratorTest {
 
 
     @Test
+    public void listPostRequestTest() {
+
+
+        stubFor(
+                post(urlEqualTo("/rest/animals"))
+                        .withRequestBody(equalTo("[\"1\",\"2\"]"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("[{\"_type\":\"Dog\",\"canBark\":true,\"gender\":\"female\",\"name\":\"Ziva\"}]")
+                                        .withStatus(200)
+                        )
+        );
+
+
+        List<String> ids = Arrays.asList("1", "2");
+        CompletableFuture<Response<List<Animal>>> listBodyResponse =
+                client.rest.animals.post(new ArrayList<>(ids));
+
+        try {
+            List<Animal> receivedUsers = listBodyResponse.get(10, TimeUnit.SECONDS).getBody();
+            assertEquals(1, receivedUsers.size());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+
+    }
+
+
+    @Test
     public void classListAndGenericsRequestTest() {
 
         stubFor(
@@ -322,6 +357,150 @@ public class RamlModelGeneratorTest {
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
+    }
+
+
+    @Test
+    public void binaryFileUploadTest() throws URISyntaxException, MalformedURLException {
+
+        stubFor(
+                post(urlEqualTo("/rest/animals/datafile/upload"))
+                        .withRequestBody(equalTo(new String(binaryData())))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("{\"received\":\"OK\"}")
+                                        .withStatus(200)
+                        )
+        );
+
+        File file = new File(new URI(this.getClass().getResource("/io/atomicbits/scraml/binaryData.bin").toString()));
+        CompletableFuture<Response<String>> eventualResponse = client.rest.animals.datafile.upload.post(file);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void binaryStreamUploadTest() throws URISyntaxException, IOException {
+
+        stubFor(
+                post(urlEqualTo("/rest/animals/datafile/upload"))
+                        .withRequestBody(equalTo(new String(binaryData())))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("{\"received\":\"OK\"}")
+                                        .withStatus(200)
+                        )
+        );
+
+        InputStream inputStream = this.getClass().getResourceAsStream("/io/atomicbits/scraml/binaryData.bin");
+        CompletableFuture<Response<String>> eventualResponse = client.rest.animals.datafile.upload.post(inputStream);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void binaryByteArrayUploadTest() throws URISyntaxException, IOException {
+
+        stubFor(
+                post(urlEqualTo("/rest/animals/datafile/upload"))
+                        .withRequestBody(equalTo(new String(binaryData())))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("{\"received\":\"OK\"}")
+                                        .withStatus(200)
+                        )
+        );
+
+        InputStream inputStream = this.getClass().getResourceAsStream("/io/atomicbits/scraml/binaryData.bin");
+        byte[] data = new byte[1024];
+        inputStream.read(data, 0, 1024);
+        inputStream.close();
+        CompletableFuture<Response<String>> eventualResponse = client.rest.animals.datafile.upload.post(data);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void binaryStringUploadTest() throws URISyntaxException, IOException {
+
+        String text = "some test string";
+
+        stubFor(
+                post(urlEqualTo("/rest/animals/datafile/upload"))
+                        .withRequestBody(equalTo(text))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("{\"received\":\"OK\"}")
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<String>> eventualResponse = client.rest.animals.datafile.upload.post(text);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
+    public void binaryDownloadTest() {
+        stubFor(
+                get(urlEqualTo("/rest/animals/datafile/download"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody(binaryData())
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<BinaryData>> eventualResponse = client.rest.animals.datafile.download.get();
+
+        try {
+            Response<BinaryData> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+            assertArrayEquals(binaryData(), response.getBody().asBytes());
+        } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    private byte[] binaryData() {
+        byte[] data = new byte[1024];
+        for (int i = 0; i < 1024; i++) {
+            data[i] = (byte) i;
+        }
+        return data;
+    }
+
+    private void createBinaryDataFile() throws FileNotFoundException, IOException {
+        File file = new File("binaryData.bin");
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        fileOutputStream.write(binaryData());
+        fileOutputStream.flush();
+        fileOutputStream.close();
     }
 
 }

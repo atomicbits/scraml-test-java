@@ -1,3 +1,4 @@
+# /rest/animals
 
 /:
   get:
@@ -36,3 +37,42 @@
                   "$ref": "http://atomicbits.io/schema/animal.json"
                 }
               }
+  post:
+    body:
+      application/json:
+        schema: |
+          {
+            "id": "http://atomicbits.io/schema/anonymous013.json",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+    responses:
+      200:
+        body:
+          application/json:
+            schema: |
+              {
+                "id": "http://atomicbits.io/schema/anonymous014.json",
+                "type": "array",
+                "items": {
+                  "$ref": "http://atomicbits.io/schema/animal.json"
+                }
+              }
+
+/datafile/upload:
+  post:
+    body:
+      application/octet-stream:
+    responses:
+      200:
+        body:
+          application/json:
+
+/datafile/download:
+  get:
+    responses:
+      200:
+        body:
+          application/octet-stream::
