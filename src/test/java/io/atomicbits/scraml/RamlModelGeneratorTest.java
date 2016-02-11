@@ -259,7 +259,7 @@ public class RamlModelGeneratorTest {
         }
 
         CompletableFuture<Response<List<User>>> listBodyResponse =
-                client.rest.user.activate.addHeader("Content-Type", "application/vnd-v1.0+json").put(users);
+                client.rest.user.addHeader("Content-Type", "application/vnd-v1.0+json").activate.put(users);
 
         try {
             List<User> receivedUsers = listBodyResponse.get(10, TimeUnit.SECONDS).getBody();
