@@ -7,10 +7,10 @@
     <groupId>io.atomicbits</groupId>
     <artifactId>scraml-test-java</artifactId>
     <packaging>jar</packaging>
-    <version>0.4.14-SNAPSHOT</version>
+    <version>0.4.15-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scraml.version>0.4.14</scraml.version>
+        <scraml.version>0.4.15-SNAPSHOT</scraml.version>
     </properties>
     <developers>
         <developer>
@@ -44,6 +44,20 @@
                         <phase>generate-sources</phase>
                         <configuration>
                             <ramlApi>/io/atomicbits/scraml/TestClient01.raml</ramlApi>
+                            <licenseKey>
+                                U1Q7Q1ZQWnZMbHZSakQ7TGVwN0JSYkJXT2I7aW8uYXRvbWljYml0czsyMDE2LTA3LTAxOzM2NiFj
+                                VzlubUlqM2t4a1o2aUZFUFhDQm5nb01pd005bXVrb0k3MVczUnI2cmxaYjc3UC92OWlRUDFXeHBD
+                                Mk9Gd2hQcHBUVXkwYVBQZFhRCnJ6Y3VialdQV2d1c3gxVHVaOTAxNEVKbmI4cm9vdk1FakVqNlZw
+                                UG1mLzVyaHdTUXg5bWRtOWxtTDdUVnJoWTM1MEZaNVNJVWxGcG4Kb201cWVkdGp5cEs5dHRhajd3
+                                V3FEby9jN2FJOEtNZk9lME5wWjhidDBzUFFoZkdvV2VDMEZCWU9pTU1BdkZPWlNuWTZDNk1UNmhM
+                                WQo0eEoxVWFrTkNaaFNOeHhqRUQyNk44SHBFcFlybjlKWWRBa1piME5mVm9hczM0bHQ4WmN1OWJE
+                                bFExK3FmaDlmazlpbm5SdjVRVkhrCnEyMFJCZ3NKbHlubnFlZHdJYm5oNTk3V1hFTE4yVzNyTC9l
+                                Mjl3PT0=
+                            </licenseKey>
+                            <classHeader>
+                                All rights reserved.
+                                This is a custom class header.
+                            </classHeader>
                         </configuration>
                         <goals>
                             <goal>scraml</goal>
