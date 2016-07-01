@@ -9,11 +9,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.atomicbits.schema.*;
-import io.atomicbits.scraml.dsl.java.BinaryData;
-import io.atomicbits.scraml.dsl.java.BodyPart;
-import io.atomicbits.scraml.dsl.java.Response;
-import io.atomicbits.scraml.dsl.java.StringPart;
-import io.atomicbits.scraml.dsl.java.client.ClientConfig;
+import io.atomicbits.schema.Method;
+import io.atomicbits.scraml.jdsl.*;
+import io.atomicbits.scraml.jdsl.client.*;
 import io.atomicbits.scraml.rest.user.UserResource;
 import io.atomicbits.scraml.rest.user.userid.UseridResource;
 import org.junit.AfterClass;
@@ -50,7 +48,9 @@ public class RamlModelGeneratorTest {
         WireMock.configureFor(host, port);
         Map<String, String> defaultHeaders = new HashMap<>();
         // defaultHeaders.put("Accept", "application/vnd-v1.0+json");
-        client = new TestClient01(host, port, "http", null, new ClientConfig(), defaultHeaders);
+        ClientConfig config = new ClientConfig();
+        config.setRequestCharset(Charset.forName("UTF-8"));
+        client = new TestClient01(host, port, "http", null, config, defaultHeaders);
     }
 
     @AfterClass
@@ -60,7 +60,7 @@ public class RamlModelGeneratorTest {
     }
 
     @Test
-    public void getRequestTest() {
+    public void getRequestTestOk() {
 
         UserResource userResource = client.rest.user;
 
@@ -70,11 +70,12 @@ public class RamlModelGeneratorTest {
                         .withBody(
                                 "{\"address\": {\"streetAddress\": \"Mulholland Drive\", \"city\": \"LA\", \"state\": \"California\"}, " +
                                         "\"firstName\":\"John\", " +
-                                        "\"lastName\": \"Doe\", " +
+                                        "\"lastName\": \"Doë\", " +
                                         "\"age\": 21, " +
                                         "\"id\": \"1\"," +
                                         "\"other\": {\"text\": \"foobar\"}" +
                                         "}")
+                        .withHeader("Content-Type", "application/json; charset=UTF-8")
                         .withStatus(200)));
 
 
@@ -83,7 +84,7 @@ public class RamlModelGeneratorTest {
         node.put("text", "foobar");
 
 
-        User expectedUser = new User(new UserDefinitionsAddress("LA", "California", "Mulholland Drive"), 21L, "John", null, "1", "Doe", node);
+        User expectedUser = new User(new UserDefinitionsAddress("LA", "California", "Mulholland Drive"), 21L, "John", null, "1", "Doë", node);
 
         CompletableFuture<Response<User>> eventualUser = userResource.get(51L, "John", null, Arrays.asList("ESA", "NASA"));
         try {
@@ -100,13 +101,40 @@ public class RamlModelGeneratorTest {
 
 
     @Test
+    public void getRequestTestError() {
+
+        UserResource userResource = client.rest.user;
+        String errorMessage = "Oops";
+
+        stubFor(get(urlEqualTo("/rest/user?firstName=John&organization=ESA&organization=NASA&age=51"))
+                .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
+                .willReturn(aResponse()
+                        .withBody(errorMessage)
+                        .withStatus(500)));
+
+        JsonNodeFactory nodeFactory = new JsonNodeFactory(false);
+        ObjectNode node = nodeFactory.objectNode();
+        node.put("text", "foobar");
+
+        CompletableFuture<Response<User>> eventualUser = userResource.get(51L, "John", null, Arrays.asList("ESA", "NASA"));
+        try {
+            Response<User> userResponse = eventualUser.get(10, TimeUnit.SECONDS);
+            assertEquals(500, userResponse.getStatus());
+            assertEquals(errorMessage, userResponse.getStringBody());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
     public void postRequestTest() {
 
         UseridResource userFoobarResource = client.rest.user.userid("foobar");
 
         stubFor(
                 post(urlEqualTo("/rest/user/foobar"))
-                        .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
+                        .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded; charset=UTF-8"))
                         .withHeader("Accept", equalTo("*/*"))
                         .withRequestBody(equalTo("text=Hello-Foobar")) // "text=Hello%20Foobar"
                         .willReturn(
@@ -146,7 +174,7 @@ public class RamlModelGeneratorTest {
         try {
             stubFor(
                     put(urlEqualTo("/rest/user/foobar"))
-                            .withHeader("Content-Type", equalTo("application/vnd-v1.0+json"))
+                            .withHeader("Content-Type", equalTo("application/vnd-v1.0+json; charset=UTF-8"))
                             .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
                             .withRequestBody(equalTo(objectMapper.writeValueAsString(user)))
                             .willReturn(
@@ -206,11 +234,37 @@ public class RamlModelGeneratorTest {
 
 
     @Test
+    public void setHeaderRequestTest() {
+
+        stubFor(
+                delete(urlEqualTo("/rest/user/foobar"))
+                        .withHeader("Accept", equalTo("foo/bar"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("Delete OK")
+                                        .withStatus(200)
+                        )
+        );
+
+        UseridResource userFoobarResource = client.rest.setHeader("Accept", "*/*").user.setHeader("Accept", "foo/bar").userid("foobar");
+
+        CompletableFuture<Response<String>> eventualDeleteResponse = userFoobarResource.delete();
+
+        try {
+            String deleteResponseText = eventualDeleteResponse.get(10, TimeUnit.SECONDS).getBody();
+            assertEquals("Delete OK", deleteResponseText);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
+    @Test
     public void multipartFormRequestTest() {
 
         stubFor(
                 post(urlEqualTo("/rest/user/upload"))
-                        .withHeader("Content-Type", equalTo("multipart/form-data"))
+                        .withHeader("Content-Type", equalTo("multipart/form-data; charset=UTF-8"))
                         .willReturn(
                                 aResponse()
                                         .withBody("Post OK")
@@ -245,13 +299,13 @@ public class RamlModelGeneratorTest {
         try {
             stubFor(
                     put(urlEqualTo("/rest/user/activate"))
-                            .withHeader("Content-Type", equalTo("application/vnd-v1.0+json"))
+                            .withHeader("Content-Type", equalTo("application/vnd-v1.0+json; charset=UTF-8"))
                             .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
                             .withRequestBody(equalTo(objectMapper.writeValueAsString(users)))
                             .willReturn(
                                     aResponse()
                                             .withBody(objectMapper.writeValueAsString(users))
-                                            .withStatus(200)
+                                            .withStatus(202)
                             )
             );
         } catch (JsonProcessingException e) {
@@ -259,7 +313,7 @@ public class RamlModelGeneratorTest {
         }
 
         CompletableFuture<Response<List<User>>> listBodyResponse =
-                client.rest.user.activate.addHeader("Content-Type", "application/vnd-v1.0+json").put(users);
+                client.rest.user.addHeader("Content-Type", "application/vnd-v1.0+json; charset=UTF-8").activate.put(users);
 
         try {
             List<User> receivedUsers = listBodyResponse.get(10, TimeUnit.SECONDS).getBody();
