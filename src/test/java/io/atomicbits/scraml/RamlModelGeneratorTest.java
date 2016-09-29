@@ -64,7 +64,8 @@ public class RamlModelGeneratorTest {
 
         UserResource userResource = client.rest.user;
 
-        stubFor(get(urlEqualTo("/rest/user?firstName=John&organization=ESA&organization=NASA&age=51"))
+        // '[]' url-encoded gives: %5B%5D
+        stubFor(get(urlEqualTo("/rest/user?firstName=John&organization%5B%5D=ESA&organization%5B%5D=NASA&age=51"))
                 .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
                 .willReturn(aResponse()
                         .withBody(
@@ -106,7 +107,8 @@ public class RamlModelGeneratorTest {
         UserResource userResource = client.rest.user;
         String errorMessage = "Oops";
 
-        stubFor(get(urlEqualTo("/rest/user?firstName=John&organization=ESA&organization=NASA&age=51"))
+        // '[]' url-encoded gives: %5B%5D
+        stubFor(get(urlEqualTo("/rest/user?firstName=John&organization%5B%5D=ESA&organization%5B%5D=NASA&age=51"))
                 .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
                 .willReturn(aResponse()
                         .withBody(errorMessage)

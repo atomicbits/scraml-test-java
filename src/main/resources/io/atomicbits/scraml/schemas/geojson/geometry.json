@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-03/schema",
   "id": "http://atomicbits.io/schema/geometry.json",
   "title": "Geo JSON object",
   "description": "Schema for a Geo JSON object",
@@ -15,6 +15,8 @@
   },
   "oneOf": [
     {
+      "id": "point.json",
+      "type": "object",
       "properties": {
         "type": {
           "enum": [
@@ -23,11 +25,13 @@
         },
         "coordinates": {
           "required": true,
-          "$ref": "#/definitions/position"
+          "$ref": "http://atomicbits.io/schema/geometry.json#/definitions/position"
         }
       }
     },
     {
+      "id": "multi-point.json",
+      "type": "object",
       "properties": {
         "type": {
           "enum": [
@@ -36,11 +40,13 @@
         },
         "coordinates": {
           "required": true,
-          "$ref": "#/definitions/positionArray"
+          "$ref": "http://atomicbits.io/schema/geometry.json#/definitions/positionArray"
         }
       }
     },
     {
+      "id": "line-string.json",
+      "type": "object",
       "properties": {
         "type": {
           "enum": [
@@ -49,11 +55,13 @@
         },
         "coordinates": {
           "required": true,
-          "$ref": "#/definitions/lineString"
+          "$ref": "http://atomicbits.io/schema/geometry.json#/definitions/lineString"
         }
       }
     },
     {
+      "id": "multi-line-string.json",
+      "type": "object",
       "properties": {
         "type": {
           "enum": [
@@ -64,12 +72,14 @@
           "required": true,
           "type": "array",
           "items": {
-            "$ref": "#/definitions/lineString"
+            "$ref": "http://atomicbits.io/schema/geometry.json#/definitions/lineString"
           }
         }
       }
     },
     {
+      "id": "polygon.json",
+      "type": "object",
       "properties": {
         "type": {
           "enum": [
@@ -78,11 +88,13 @@
         },
         "coordinates": {
           "required": true,
-          "$ref": "#/definitions/polygon"
+          "$ref": "http://atomicbits.io/schema/geometry.json#/definitions/polygon"
         }
       }
     },
     {
+      "id": "multi-polygon.json",
+      "type": "object",
       "properties": {
         "type": {
           "enum": [
@@ -93,12 +105,14 @@
           "required": true,
           "type": "array",
           "items": {
-            "$ref": "#/definitions/polygon"
+            "$ref": "http://atomicbits.io/schema/geometry.json#/definitions/polygon"
           }
         }
       }
     },
     {
+      "id": "geometry-collection.json",
+      "type": "object",
       "properties": {
         "type": {
           "enum": [
