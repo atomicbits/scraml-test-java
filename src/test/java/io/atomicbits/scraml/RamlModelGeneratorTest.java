@@ -137,7 +137,7 @@ public class RamlModelGeneratorTest {
         stubFor(
                 post(urlEqualTo("/rest/user/foobar"))
                         .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded; charset=UTF-8"))
-                        .withHeader("Accept", equalTo("*/*"))
+                        .withHeader("Accept", equalTo("application/json")) // The default media type applies here!
                         .withRequestBody(equalTo("text=Hello-Foobar")) // "text=Hello%20Foobar"
                         .willReturn(
                                 aResponse()
