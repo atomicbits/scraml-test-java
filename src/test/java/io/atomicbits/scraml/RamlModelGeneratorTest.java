@@ -73,17 +73,19 @@ public class RamlModelGeneratorTest {
                                         "\"firstName\":\"John\", " +
                                         "\"lastName\": \"Doë\", " +
                                         "\"age\": 21, " +
-                                        "\"id\": \"1\"" +
+                                        "\"id\": \"1\"," +
+                                        "\"other\": {\"text\": \"foobar\"}" +
                                         "}")
                         .withHeader("Content-Type", "application/json; charset=UTF-8")
                         .withStatus(200)));
 
 
-//        JsonNodeFactory nodeFactory = new JsonNodeFactory(false);
-//        ObjectNode node = nodeFactory.objectNode();
-//        node.put("text", "foobar");
+        JsonNodeFactory nodeFactory = new JsonNodeFactory(false);
+        ObjectNode node = nodeFactory.objectNode();
+        node.put("text", "foobar");
 
-        User expectedUser = new User(new UserDefinitionsAddress("LA", "California", "Mulholland Drive"), 21L, "John", null, "1", "Doë", null);
+
+        User expectedUser = new User(new UserDefinitionsAddress("LA", "California", "Mulholland Drive"), 21L, "John", null, "1", "Doë", node);
 
         CompletableFuture<Response<User>> eventualUser = userResource.get(51L, "John", null, Arrays.asList("ESA", "NASA"));
         try {
