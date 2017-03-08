@@ -542,6 +542,189 @@ public class RamlModelGeneratorTest {
     }
 
 
+    // - - - RAML 1.0 specific tests starte here
+
+    /**
+     * test a GET request to get a Book list (the base class of a hierarchy)
+     */
+    @Test
+    public void raml10GetBookList(){
+
+        Author jamesCorey = new Author("James", "Corey");
+        Author peterDavid = new Author("Peter", "David");
+
+        List<Book> expectedBooks = Arrays.asList(
+                new BookImpl(jamesCorey, "SciFi", "978-0-316-12908-4", "Leviathan Wakes"),
+                new ComicBook(peterDavid, "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy"),
+                new SciFiComicBook(peterDavid, "1990", "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy")
+        );
+
+        stubFor(
+                get(urlEqualTo("/books"))
+                        .withHeader("Accept", equalTo("application/json"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("[{\"author\": {\"firstName\": \"James\", \"lastName\": \"Corey\"}, \"isbn\":\"978-0-316-12908-4\", \"title\": \"Leviathan Wakes\", \"genre\": \"SciFi\", \"kind\": \"Book\"}, {\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"kind\": \"ComicBook\"}, {\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"era\": \"1990\", \"villain\": \"Mr. Badguy\", \"kind\": \"ScienceFictionComicBook\"}]")
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<List<Book>>> eventualBooks = client.books.get();
+
+        try {
+            Response<List<Book>> response = eventualBooks.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+            List<Book> books = response.getBody();
+            assertEquals(3, books.size()); // Todo: full comparison of elements once we have the equals() method in our POJOs!!!
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * test a POST request with a Book (the base class of a hierarchy)
+     */
+    @Test
+    public void raml10PostBook() {
+
+        stubFor(
+                post(urlEqualTo("/books"))
+                        .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
+                        .withRequestBody(
+                                equalToJson(
+                                        "{\"author\": {\"firstName\": \"James\", \"lastName\": \"Corey\"}, \"isbn\":\"978-0-316-12908-4\", \"title\": \"Leviathan Wakes\", \"genre\": \"SciFi\", \"kind\": \"Book\"}")
+                        )
+                        .willReturn(aResponse()
+                                .withStatus(201)));
+
+        Author jamesCorey = new Author("James", "Corey");
+        BookImpl book = new BookImpl(jamesCorey, "SciFi", "978-0-316-12908-4", "Leviathan Wakes");
+
+        CompletableFuture<Response<String>> eventualResponse = client.books.post(book);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(201, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * test a GET request to get a ComicBook list (a non-leaf subclass in a class hierarchy)
+     */
+    @Test
+    public void raml10GetComicBook() {
+
+        stubFor(
+                get(urlEqualTo("/books/comicbooks"))
+                        .withHeader("Accept", equalTo("application/json"))
+                        .willReturn(aResponse()
+                                .withBody("[{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"kind\": \"ComicBook\"}]")
+                                .withStatus(200)));
+
+        CompletableFuture<Response<List<ComicBook>>> eventualComicBooks = client.books.comicbooks.get();
+
+        try {
+            Response<List<ComicBook>> comicBookResponse = eventualComicBooks.get(10, TimeUnit.SECONDS);
+            assertEquals(200, comicBookResponse.getStatus());
+            assertEquals("Peter", comicBookResponse.getBody().get(0).getAuthor().getFirstName());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * test a POST request with a ComicBook (a non-leaf subclass in a class hierarchy)
+     */
+    @Test
+    public void raml10PostComicBook() {
+
+        stubFor(
+                post(urlEqualTo("/books/comicbooks"))
+                        .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
+                        .withRequestBody(
+                                equalToJson(
+                                        "{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"kind\": \"ComicBook\"}"
+                                )
+                        )
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(201)
+                        )
+        );
+
+        Author peterDavid = new Author("Peter", "David");
+        ComicBook comicBook = new ComicBook(peterDavid, "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy");
+
+        CompletableFuture<Response<String>> eventualResponse = client.books.comicbooks.post(comicBook);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(201, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * test a GET request to get a SciFi ComicBook list (a leaf subclass in a class hierarchy)
+     */
+    @Test
+    public void raml10GetSciFiComicBookList(){
+
+        stubFor(
+                get(urlEqualTo("/books/comicbooks/scificomicbooks"))
+                        .withHeader("Accept", equalTo("application/json"))
+                        .willReturn(aResponse()
+                                .withBody("[{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"era\": \"1990\", \"kind\": \"ScienceFictionComicBook\"}]")
+                                .withStatus(200)));
+
+        CompletableFuture<Response<List<SciFiComicBook>>> eventualSciFiComicBooks = client.books.comicbooks.scificomicbooks.get();
+
+        try {
+            Response<List<SciFiComicBook>> sciFiComicBookResponse = eventualSciFiComicBooks.get(10, TimeUnit.SECONDS);
+            assertEquals(200, sciFiComicBookResponse.getStatus());
+            assertEquals("Peter", sciFiComicBookResponse.getBody().get(0).getAuthor().getFirstName());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * test a POST request with a SciFi ComicBook (a leaf subclass in a class hierarchy)
+     */
+    @Test
+    public void raml10PostSciFiComicBook(){
+
+        stubFor(
+                post(urlEqualTo("/books/comicbooks/scificomicbooks"))
+                        .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
+                        .withRequestBody(
+                                equalToJson(
+                                        "{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"era\": \"1990\", \"kind\": \"ScienceFictionComicBook\"}"
+                                )
+                        )
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(201)
+                        )
+        );
+
+        Author peterDavid = new Author("Peter", "David");
+        SciFiComicBook sciFiComicBook = new SciFiComicBook(peterDavid, "1990", "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy");
+
+        CompletableFuture<Response<String>> eventualResponse = client.books.comicbooks.scificomicbooks.post(sciFiComicBook);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(201, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+
     private byte[] binaryData() {
         byte[] data = new byte[1024];
         for (int i = 0; i < 1024; i++) {
