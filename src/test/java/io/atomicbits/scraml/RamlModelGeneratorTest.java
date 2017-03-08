@@ -1,19 +1,20 @@
 package io.atomicbits.scraml;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import io.atomicbits.schema.*;
-import io.atomicbits.schema.Method;
-import io.atomicbits.scraml.jdsl.*;
+import io.atomicbits.raml10.*;
+import io.atomicbits.raml10.rest.user.UserResource;
+import io.atomicbits.raml10.rest.user.userid.UseridResource;
+import io.atomicbits.scraml.jdsl.BinaryData;
+import io.atomicbits.scraml.jdsl.BodyPart;
+import io.atomicbits.scraml.jdsl.Response;
+import io.atomicbits.scraml.jdsl.StringPart;
 import io.atomicbits.scraml.jdsl.client.*;
-import io.atomicbits.scraml.rest.user.UserResource;
-import io.atomicbits.scraml.rest.user.userid.UseridResource;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,7 +40,7 @@ public class RamlModelGeneratorTest {
     private static int port = 8281;
     private static String host = "localhost";
     private static WireMockServer wireMockServer = new WireMockServer(WireMockConfiguration.wireMockConfig().port(port));
-    private static TestClient01 client;
+    private static RamlTestClient client;
 
 
     @BeforeClass
@@ -50,7 +51,7 @@ public class RamlModelGeneratorTest {
         // defaultHeaders.put("Accept", "application/vnd-v1.0+json");
         ClientConfig config = new ClientConfig();
         config.setRequestCharset(Charset.forName("UTF-8"));
-        client = new TestClient01(host, port, "http", null, config, defaultHeaders);
+        client = new RamlTestClient(host, port, "http", null, config, defaultHeaders);
     }
 
     @AfterClass
