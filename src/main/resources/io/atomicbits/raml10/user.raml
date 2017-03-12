@@ -21,6 +21,12 @@
         body:
           application/vnd-v1.0+json:
             schema: user
+      412:
+        description: PreCondition Failed
+        body:
+          application/vnd-v1.0+json:
+            schema: error
+
 
 /upload:
   post:
