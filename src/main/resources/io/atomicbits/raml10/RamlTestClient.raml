@@ -5,24 +5,25 @@ version: 1.0
 mediaType: application/json
 
 types:
-  link:           !include schemas/link.json
-  method:         !include schemas/method.json
-  user:           !include schemas/user.json
-  error:          !include schemas/error.json
-  animal:         !include schemas/animal.json
-  zoo:            !include schemas/zoo.json
-  paged-list:     !include schemas/paged-list.json
-  strange-chars:  !include schemas/strange-chars.json
-  bbox:           !include schemas/geojson/bbox.json
-  crs:            !include schemas/geojson/crs.json
-  geometry:       !include schemas/geojson/geometry.json
-  many-fields:    !include schemas/many-fields.json
-  attributes:     !include schemas/attributes.json
-  connections:    !include schemas/gurumeditator/connections.json
-  messages:       !include schemas/gurumeditator/messages.json
-  car:            !include schemas/relativeid/car.json
-  engine:         !include schemas/relativeid/engine.json
-  fuel:           !include schemas/relativeid/fuel.json
+  link:                     !include schemas/link.json
+  method:                   !include schemas/method.json
+  user:                     !include schemas/user.json
+  error:                    !include schemas/error.json
+  animal:                   !include schemas/animal.json
+  zoo:                      !include schemas/zoo.json
+  paged-list:               !include schemas/paged-list.json
+  strange-chars:            !include schemas/strange-chars.json
+  bbox:                     !include schemas/geojson/bbox.json
+  crs:                      !include schemas/geojson/crs.json
+  geometry:                 !include schemas/geojson/geometry.json
+  many-fields:              !include schemas/many-fields.json
+  attributes:               !include schemas/attributes.json
+  empty-object-field:       !include schemas/empty-object-field.json
+  connections:              !include schemas/gurumeditator/connections.json
+  messages:                 !include schemas/gurumeditator/messages.json
+  car:                      !include schemas/relativeid/car.json
+  engine:                   !include schemas/relativeid/engine.json
+  fuel:                     !include schemas/relativeid/fuel.json
   Book:
     type: object
     discriminator: kind
@@ -114,6 +115,21 @@ types:
 
 /rest/animals:
   !include animals.raml
+
+/rest/emptyobject:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: empty-object-field
+  post:
+    body:
+      application/json:
+        type: empty-object-field
+    responses:
+      200:
+        body:
 
 /cars:
   get:

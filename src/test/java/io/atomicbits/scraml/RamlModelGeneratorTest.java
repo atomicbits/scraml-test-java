@@ -542,7 +542,7 @@ public class RamlModelGeneratorTest {
     }
 
 
-    // - - - RAML 1.0 specific tests starte here
+    // - - - Tests using RAML 1.0 features start here
 
     /**
      * test a GET request to get a Book list (the base class of a hierarchy)
@@ -719,6 +719,61 @@ public class RamlModelGeneratorTest {
         try {
             Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
             assertEquals(201, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * deserialization of a given object that contains a field that points to an empty object
+     */
+    @Test
+    public void emptyObjectDeserialization() {
+        stubFor(
+                get(urlEqualTo("/rest/emptyobject"))
+                        .withHeader("Accept", equalTo("application/json"))
+                        .willReturn(aResponse()
+                                .withBody("{\"message\":\"OK\", \"data\": { \"anything\": 123 } }")
+                                .withStatus(200)));
+
+        CompletableFuture<Response<EmptyObjectField>> eventualEmptyObjectField = client.rest.emptyobject.get();
+
+        try {
+            Response<EmptyObjectField> emptyObjectFieldResponse = eventualEmptyObjectField.get(10, TimeUnit.SECONDS);
+            assertEquals(200, emptyObjectFieldResponse.getStatus());
+            assertEquals(123, emptyObjectFieldResponse.getBody().getData().findPath("anything").asInt());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+/**
+     * serialization of a given object that contains a field that points to an empty object
+     */
+    @Test
+    public void emptyObjectSerialization() {
+        stubFor(
+                post(urlEqualTo("/rest/emptyobject"))
+                        .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
+                        .withRequestBody(
+                                equalToJson(
+                                        "{\"message\":\"OK\", \"data\": { \"anything\": 123.0 } }"
+                                )
+                        )
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(200)
+                        )
+        );
+
+        JsonNodeFactory factory = JsonNodeFactory.instance;
+        EmptyObjectField emptyObjectField =
+                new EmptyObjectField(factory.objectNode().set("anything", factory.numberNode(123)), "OK");
+        CompletableFuture<Response<String>> eventualResponse = client.rest.emptyobject.post(emptyObjectField);
+
+        try {
+            Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
