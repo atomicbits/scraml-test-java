@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema",
-  "id": "http://example.com/schema/connectionsInline.json#",
+  "id": "http://example.com/raml10/connectionsInline.json#",
   "type": "object",
   "connection": {
     "id": "#/connection",

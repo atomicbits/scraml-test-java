@@ -43,7 +43,7 @@
                         <id>generate-client-sources</id>
                         <phase>generate-sources</phase>
                         <configuration>
-                            <ramlApi>/io/atomicbits/scraml/TestClient01.raml</ramlApi>
+                            <ramlApi>/io/atomicbits/raml10/RamlTestClient.raml</ramlApi>
                             <!--ToDo: multi-api generation support-->
                             <!--<ramlApi>/org/raml/forums/books-api.raml</ramlApi>-->
                         </configuration>

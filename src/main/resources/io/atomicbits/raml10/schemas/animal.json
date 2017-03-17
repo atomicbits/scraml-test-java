@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-03/schema",
-  "id": "http://atomicbits.io/schema/animal.json#",
+  "id": "http://atomicbits.io/raml10/animal.json#",
   "type": "object",
   "typeDiscriminator": "_type",
   "description": "An animal object.",
