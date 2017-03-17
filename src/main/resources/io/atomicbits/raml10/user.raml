@@ -21,6 +21,12 @@
         body:
           application/vnd-v1.0+json:
             schema: user
+      412:
+        description: PreCondition Failed
+        body:
+          application/vnd-v1.0+json:
+            schema: error
+
 
 /upload:
   post:
@@ -97,16 +103,26 @@
           application/vnd-v1.0+json:
             schema: |
               {
-                "$ref": "http://atomicbits.io/schema/paged-list.json#",
+                "$ref": "http://atomicbits.io/raml10/paged-list.json#",
                 "genericTypes": {
                   "T": {
-                    "$ref": "http://atomicbits.io/schema/dog.json"
+                    "$ref": "http://atomicbits.io/raml10/dog.json"
                   },
                   "U": {
                     "type": "string"
                   }
                 }
               }
+  post:
+    body:
+      application/vnd-v1.0+json:
+        schema: |
+          {
+            "$ref": "http://atomicbits.io/raml10/dog.json"
+          }
+    responses:
+      201:
+
 
 #  description: todo support for anonymous schema id's for non-object schema's, List[] support in body and result directly
 #  description: todo testing primitives as request & response bodies
@@ -119,7 +135,7 @@
           {
             "type": "array",
             "items": {
-              "$ref": "http://atomicbits.io/schema/user.json"
+              "$ref": "http://atomicbits.io/raml10/user.json"
             }
           }
     responses:
@@ -130,6 +146,53 @@
               {
                 "type": "array",
                 "items": {
-                  "$ref": "http://atomicbits.io/schema/user.json"
+                  "$ref": "http://atomicbits.io/raml10/user.json"
                 }
               }
+
+/{userid}/location:
+  uriParameters:
+    userid:
+      description: The user's id.
+      type: string
+      required: true
+  get:
+    responses:
+      200:
+        body:
+          application/vnd-v1.0+json:
+            schema: geometry
+
+/test:
+  get:
+    body:
+      application/json:
+        schema: |
+          {
+            "$schema": "http://json-schema.org/draft-03/schema#",
+            "id": "http://gurumeditator.io/schema/my-object.json",
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "id": "http://gurumeditator.io/schema/my-other-object.json",
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "typeName": {
+                      "type": "string",
+                      "required": true
+                    },
+                    "placeList": {
+                      "type": "string",
+                      "required": true
+                    }
+                  }
+                }
+              }
+            }
+          }

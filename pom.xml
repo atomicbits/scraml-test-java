@@ -7,10 +7,10 @@
     <groupId>io.atomicbits</groupId>
     <artifactId>scraml-test-java</artifactId>
     <packaging>jar</packaging>
-    <version>0.5.0.beta</version>
+    <version>0.6.0</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scraml.version>0.5.0.beta</scraml.version>
+        <scraml.version>0.6.0</scraml.version>
     </properties>
     <developers>
         <developer>
@@ -43,7 +43,9 @@
                         <id>generate-client-sources</id>
                         <phase>generate-sources</phase>
                         <configuration>
-                            <ramlApi>/io/atomicbits/scraml/TestClient01.raml</ramlApi>
+                            <ramlApi>/io/atomicbits/raml10/RamlTestClient.raml</ramlApi>
+                            <!--ToDo: multi-api generation support-->
+                            <!--<ramlApi>/org/raml/forums/books-api.raml</ramlApi>-->
                         </configuration>
                         <goals>
                             <goal>scraml</goal>
