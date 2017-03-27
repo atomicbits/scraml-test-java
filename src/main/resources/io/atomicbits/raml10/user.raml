@@ -13,9 +13,9 @@
         description: The age of the user.
         type: integer
       organization[]:
-        description: |
-          The organization of the user. The [] at the end of the parameter name is a meaningless literal that is maintained in the API.
-        type: string[]
+        description: The organization of the user.
+        type: string
+        repeat: true
     responses:
       200:
         body:
@@ -104,14 +104,14 @@
             schema: |
               {
                 "$ref": "http://atomicbits.io/raml10/paged-list.json#",
-                "genericTypes": [
-                  {
+                "genericTypes": {
+                  "T": {
                     "$ref": "http://atomicbits.io/raml10/dog.json"
                   },
-                  {
+                  "U": {
                     "type": "string"
                   }
-                ]
+                }
               }
   post:
     body:
