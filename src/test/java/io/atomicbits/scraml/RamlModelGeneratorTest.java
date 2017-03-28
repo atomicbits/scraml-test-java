@@ -749,7 +749,7 @@ public class RamlModelGeneratorTest {
         }
     }
 
-/**
+    /**
      * serialization of a given object that contains a field that points to an empty object
      */
     @Test
@@ -775,6 +775,34 @@ public class RamlModelGeneratorTest {
 
         try {
             Response<String> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    /**
+     * A plain string post body should serialize without extra quotes.
+     */
+    @Test
+    public void plainStringPostBody() {
+        stubFor(
+                post(urlEqualTo("/rest/animals/food"))
+                        .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
+                        .withRequestBody(
+                                equalTo("veggie")
+                        )
+                        .willReturn(
+                                aResponse()
+                                        .withBody("[{\"_type\":\"Cat\",\"gender\":\"female\",\"name\":\"Orelia\"}]")
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<List<Animal>>> eventualResponse = client.rest.animals.food.post("veggie");
+
+        try {
+            Response<List<Animal>> response = eventualResponse.get(10, TimeUnit.SECONDS);
             assertEquals(200, response.getStatus());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             fail("Did not expect exception: " + e.getMessage());
