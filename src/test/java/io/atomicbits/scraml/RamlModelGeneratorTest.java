@@ -809,6 +809,28 @@ public class RamlModelGeneratorTest {
         }
     }
 
+    /**
+     * An enumeration as query parameter type should serialize as its string value
+     */
+    @Test
+    public void enumerationQueryParameterType() {
+
+        stubFor(get(urlEqualTo("/rest/animals/byfood?food=rats"))
+                .withHeader("Accept", equalTo("application/json"))
+                .willReturn(aResponse()
+                        .withBody("[{\"_type\":\"Dog\",\"canBark\":true,\"gender\":\"female\",\"name\":\"Ziva\"}]")
+                        .withStatus(200)));
+
+        CompletableFuture<Response<List<Animal>>> eventualResponse = client.rest.animals.byfood.get(Food.rats);
+
+        try {
+            Response<List<Animal>> response = eventualResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
 
     private byte[] binaryData() {
         byte[] data = new byte[1024];
