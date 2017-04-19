@@ -418,11 +418,11 @@ public class RamlModelGeneratorTest {
 
 
     @Test
-    public void binaryFileUploadTest() throws URISyntaxException, MalformedURLException {
+    public void binaryFileUploadTest() throws URISyntaxException, MalformedURLException, UnsupportedEncodingException {
 
         stubFor(
                 post(urlEqualTo("/rest/animals/datafile/upload"))
-                        .withRequestBody(equalTo(new String(binaryData())))
+                        .withRequestBody(equalTo(new String(binaryData(), "UTF-8")))
                         .willReturn(
                                 aResponse()
                                         .withBody("{\"received\":\"OK\"}")
@@ -447,7 +447,7 @@ public class RamlModelGeneratorTest {
 
         stubFor(
                 post(urlEqualTo("/rest/animals/datafile/upload"))
-                        .withRequestBody(equalTo(new String(binaryData())))
+                        .withRequestBody(equalTo(new String(binaryData(), "UTF-8")))
                         .willReturn(
                                 aResponse()
                                         .withBody("{\"received\":\"OK\"}")
@@ -472,7 +472,7 @@ public class RamlModelGeneratorTest {
 
         stubFor(
                 post(urlEqualTo("/rest/animals/datafile/upload"))
-                        .withRequestBody(equalTo(new String(binaryData())))
+                        .withRequestBody(equalTo(new String(binaryData(), "UTF-8")))
                         .willReturn(
                                 aResponse()
                                         .withBody("{\"received\":\"OK\"}")
