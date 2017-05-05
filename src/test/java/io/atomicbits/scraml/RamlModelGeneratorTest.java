@@ -9,6 +9,8 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.atomicbits.raml10.*;
 import io.atomicbits.raml10.rest.user.UserResource;
+import io.atomicbits.raml10.rest.user.formurlencodedtype.FormurlencodedtypeResource;
+import io.atomicbits.raml10.rest.user.inlinetype.InlinetypeResource;
 import io.atomicbits.raml10.rest.user.userid.UseridResource;
 import io.atomicbits.raml10.dsl.javajackson.BinaryData;
 import io.atomicbits.raml10.dsl.javajackson.BodyPart;
@@ -151,6 +153,37 @@ public class RamlModelGeneratorTest {
         try {
             String responseText = eventualPostResponse.get(10, TimeUnit.SECONDS).getBody();
             assertEquals("Post OK", responseText);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+
+    }
+
+
+    @Test
+    public void postWithTypedFormUrlEncodedTest() {
+
+        FormurlencodedtypeResource formurlencodedtypeResource = client.rest.user.formurlencodedtype;
+
+        stubFor(
+                post(urlEqualTo("/rest/user/formurlencodedtype"))
+                        .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded; charset=UTF-8"))
+                        .withHeader("Accept", equalTo("application/json")) // The default media type applies here!
+                        .withRequestBody(equalTo("firstname=Foo&age=21&lastname=Bar"))
+                        .willReturn(
+                                aResponse()
+                                        .withStatus(200)
+                        )
+        );
+
+        SimpleForm simpleForm = new SimpleForm();
+        simpleForm.setAge(21L);
+        simpleForm.setFirstname("Foo");
+        simpleForm.setLastname("Bar");
+        CompletableFuture<Response<String>> eventualPostResponse = formurlencodedtypeResource.post(simpleForm);
+        try {
+            Response<String> response = eventualPostResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
