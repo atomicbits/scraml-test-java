@@ -190,6 +190,27 @@ public class RamlModelGeneratorTest {
 
     }
 
+    @Test
+    public void getWithTypedQueryStringTest() {
+
+        stubFor(
+                get(urlEqualTo("/rest/user/typedquerystring?firstname=Foo&age=21&lastname=Bar"))
+                        .willReturn(aResponse()
+                                .withStatus(200)));
+
+        SimpleForm simpleForm = new SimpleForm();
+        simpleForm.setAge(21L);
+        simpleForm.setFirstname("Foo");
+        simpleForm.setLastname("Bar");
+        CompletableFuture<Response<String>> eventualPostResponse = client.rest.user.typedquerystring.get(simpleForm);
+        try {
+            Response<String> response = eventualPostResponse.get(10, TimeUnit.SECONDS);
+            assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+
+    }
 
     @Test
     public void putRequestTest() {
