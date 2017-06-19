@@ -194,12 +194,12 @@ public class RamlModelGeneratorTest {
     public void getWithTypedQueryStringTest() {
 
         stubFor(
-                get(urlEqualTo("/rest/user/typedquerystring?firstname=Foo&age=21&lastname=Bar"))
+                get(urlEqualTo("/rest/user/typedquerystring?firstname=Foo&lastname=Bar"))
                         .willReturn(aResponse()
                                 .withStatus(200)));
 
         SimpleForm simpleForm = new SimpleForm();
-        simpleForm.setAge(21L);
+        // simpleForm.setAge(21L);
         simpleForm.setFirstname("Foo");
         simpleForm.setLastname("Bar");
         CompletableFuture<Response<String>> eventualPostResponse = client.rest.user.typedquerystring.get(simpleForm);

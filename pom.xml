@@ -10,7 +10,7 @@
     <version>0.7.0-SNAPSHOT</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scraml.version>0.7.0-SNAPSHOT</scraml.version>
+        <scraml.version>0.7.0-M1</scraml.version>
     </properties>
     <developers>
         <developer>
