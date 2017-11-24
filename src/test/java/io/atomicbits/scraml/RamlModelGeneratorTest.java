@@ -8,14 +8,13 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import io.atomicbits.raml10.*;
+import io.atomicbits.raml10.Method;
+import io.atomicbits.raml10.dsl.javajackson.*;
+import io.atomicbits.raml10.dsl.javajackson.json.Json;
 import io.atomicbits.raml10.rest.user.UserResource;
 import io.atomicbits.raml10.rest.user.formurlencodedtype.FormurlencodedtypeResource;
 import io.atomicbits.raml10.rest.user.inlinetype.InlinetypeResource;
 import io.atomicbits.raml10.rest.user.userid.UseridResource;
-import io.atomicbits.raml10.dsl.javajackson.BinaryData;
-import io.atomicbits.raml10.dsl.javajackson.BodyPart;
-import io.atomicbits.raml10.dsl.javajackson.Response;
-import io.atomicbits.raml10.dsl.javajackson.StringPart;
 import io.atomicbits.raml10.dsl.javajackson.client.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -29,6 +28,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -68,7 +72,7 @@ public class RamlModelGeneratorTest {
         UserResource userResource = client.rest.user;
 
         // '[]' url-encoded gives: %5B%5D
-        stubFor(get(urlEqualTo("/rest/user?firstName=John&organization%5B%5D=ESA&organization%5B%5D=NASA&age=51"))
+        stubFor(get(urlEqualTo("/rest/user?firstName=John&b-day=1978-05-25&organization%5B%5D=ESA&organization%5B%5D=NASA&age=51"))
                 .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
                 .willReturn(aResponse()
                         .withBody(
@@ -76,6 +80,7 @@ public class RamlModelGeneratorTest {
                                         "\"firstName\":\"John\", " +
                                         "\"lastName\": \"Doë\", " +
                                         "\"age\": 21, " +
+                                        "\"birthday\": \"2015-05-23\", " +
                                         "\"id\": \"1\"," +
                                         "\"other\": {\"text\": \"foobar\"}" +
                                         "}")
@@ -88,9 +93,25 @@ public class RamlModelGeneratorTest {
         node.put("text", "foobar");
 
 
-        User expectedUser = new User(new UserDefinitionsAddress("LA", "California", "Mulholland Drive"), 21L, "John", null, "1", "Doë", node);
+        User expectedUser = new User(
+                new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
+                21L,
+                new DateOnly(LocalDate.parse("2015-05-23")),
+                "John",
+                null,
+                "1",
+                "Doë",
+                node
+        );
 
-        CompletableFuture<Response<User>> eventualUser = userResource.get(51L, "John", null, Arrays.asList("ESA", "NASA"));
+        CompletableFuture<Response<User>> eventualUser =
+                userResource.get(
+                        51L,
+                        new DateOnly(LocalDate.parse("1978-05-25")),
+                        "John",
+                        null,
+                        Arrays.asList("ESA", "NASA")
+                );
         try {
             User user = eventualUser.get(10, TimeUnit.SECONDS).getBody();
             assertEquals(expectedUser.getFirstName(), user.getFirstName());
@@ -111,7 +132,7 @@ public class RamlModelGeneratorTest {
         String errorMessage = "Oops";
 
         // '[]' url-encoded gives: %5B%5D
-        stubFor(get(urlEqualTo("/rest/user?firstName=John&organization%5B%5D=ESA&organization%5B%5D=NASA&age=51"))
+        stubFor(get(urlEqualTo("/rest/user?firstName=John&b-day=1978-05-25&organization%5B%5D=ESA&organization%5B%5D=NASA&age=51"))
                 .withHeader("Accept", equalTo("application/vnd-v1.0+json"))
                 .willReturn(aResponse()
                         .withBody(errorMessage)
@@ -121,7 +142,14 @@ public class RamlModelGeneratorTest {
         ObjectNode node = nodeFactory.objectNode();
         node.put("text", "foobar");
 
-        CompletableFuture<Response<User>> eventualUser = userResource.get(51L, "John", null, Arrays.asList("ESA", "NASA"));
+        CompletableFuture<Response<User>> eventualUser =
+                userResource.get(
+                        51L,
+                        new DateOnly(LocalDate.parse("1978-05-25")),
+                        "John",
+                        null,
+                        Arrays.asList("ESA", "NASA")
+                );
         try {
             Response<User> userResponse = eventualUser.get(10, TimeUnit.SECONDS);
             assertEquals(500, userResponse.getStatus());
@@ -218,6 +246,7 @@ public class RamlModelGeneratorTest {
         User user = new User(
                 new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
                 21L,
+                new DateOnly(LocalDate.parse("2015-05-23")),
                 "Doe",
                 new Link(null, "http://foo.bar", Method.space),
                 "1",
@@ -226,7 +255,7 @@ public class RamlModelGeneratorTest {
 
         Link link = new Link(null, "http://foo.bar", Method.$8Trees);
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = Json.getObjectMapper();
 
         try {
             stubFor(
@@ -343,13 +372,14 @@ public class RamlModelGeneratorTest {
         User user = new User(
                 new UserDefinitionsAddress("LA", "California", "Mulholland Drive"),
                 21L,
+                new DateOnly(LocalDate.parse("2015-05-23")),
                 "John",
                 new Link(null, "http://foo.bar", Method.GET),
                 "1",
                 "Doe",
                 null);
 
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = Json.getObjectMapper();
 
         List<User> users = Collections.singletonList(user);
 
@@ -448,7 +478,21 @@ public class RamlModelGeneratorTest {
 
         stubFor(
                 put(urlEqualTo("/rest/animals"))
-                        .withRequestBody(equalTo("[{\"_type\":\"Dog\",\"gender\":\"male\",\"canBark\":true,\"name\":\"Wiskey\"},{\"_type\":\"Fish\",\"gender\":\"female\"},{\"_type\":\"Cat\",\"gender\":\"male\",\"name\":\"Duster\"}]"))
+                        .withRequestBody(equalTo("[{" +
+                                "\"_type\":\"Dog\"," +
+                                "\"gender\":\"male\"," +
+                                "\"canBark\":true," +
+                                "\"name\":\"Wiskey\"" +
+                                "}," +
+                                "{" +
+                                "\"_type\":\"Fish\"," +
+                                "\"gender\":\"female\"" +
+                                "}," +
+                                "{" +
+                                "\"_type\":\"Cat\"," +
+                                "\"gender\":\"male\"," +
+                                "\"name\":\"Duster\"" +
+                                "}]"))
                         .willReturn(
                                 aResponse()
                                         .withBody("[{\"_type\":\"Cat\",\"gender\":\"female\",\"name\":\"Orelia\"}]")
@@ -611,8 +655,23 @@ public class RamlModelGeneratorTest {
 
         List<Book> expectedBooks = Arrays.asList(
                 new BookImpl(jamesCorey, "SciFi", "978-0-316-12908-4", "Leviathan Wakes"),
-                new ComicBook(peterDavid, "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy"),
-                new SciFiComicBook(peterDavid, "1990", "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy")
+                new ComicBook(
+                        peterDavid,
+                        "SciFi",
+                        "Spiderman",
+                        "75960608623800111",
+                        "The Clone Conspiracy",
+                        "Mr. Badguy"
+                ),
+                new SciFiComicBook(
+                        peterDavid,
+                        "1990",
+                        "SciFi",
+                        "Spiderman",
+                        "75960608623800111",
+                        "The Clone Conspiracy",
+                        "Mr. Badguy"
+                )
         );
 
         stubFor(
@@ -620,7 +679,43 @@ public class RamlModelGeneratorTest {
                         .withHeader("Accept", equalTo("application/json"))
                         .willReturn(
                                 aResponse()
-                                        .withBody("[{\"author\": {\"firstName\": \"James\", \"lastName\": \"Corey\"}, \"isbn\":\"978-0-316-12908-4\", \"title\": \"Leviathan Wakes\", \"genre\": \"SciFi\", \"kind\": \"Book\"}, {\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"kind\": \"ComicBook\"}, {\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"era\": \"1990\", \"villain\": \"Mr. Badguy\", \"kind\": \"ScienceFictionComicBook\"}]")
+                                        .withBody("[{\"author\": " +
+                                                "{" +
+                                                "\"firstName\": \"James\", " +
+                                                "\"lastName\": \"Corey\"" +
+                                                "}, " +
+                                                "\"isbn\":\"978-0-316-12908-4\", " +
+                                                "\"title\": \"Leviathan Wakes\", " +
+                                                "\"genre\": \"SciFi\", " +
+                                                "\"kind\": \"Book\"" +
+                                                "}, " +
+                                                "{" +
+                                                "\"author\": " +
+                                                "{" +
+                                                "\"firstName\": \"Peter\", " +
+                                                "\"lastName\": \"David\"" +
+                                                "}, " +
+                                                "\"isbn\":\"75960608623800111\", " +
+                                                "\"title\": \"The Clone Conspiracy\", " +
+                                                "\"genre\": \"SciFi\", " +
+                                                "\"hero\": \"Spiderman\", " +
+                                                "\"villain\": \"Mr. Badguy\", " +
+                                                "\"kind\": \"ComicBook\"" +
+                                                "}, " +
+                                                "{" +
+                                                "\"author\": " +
+                                                "{" +
+                                                "\"firstName\": \"Peter\", " +
+                                                "\"lastName\": \"David\"" +
+                                                "}, " +
+                                                "\"isbn\":\"75960608623800111\", " +
+                                                "\"title\": \"The Clone Conspiracy\", " +
+                                                "\"genre\": \"SciFi\", " +
+                                                "\"hero\": \"Spiderman\", " +
+                                                "\"era\": \"1990\", " +
+                                                "\"villain\": \"Mr. Badguy\", " +
+                                                "\"kind\": \"ScienceFictionComicBook\"" +
+                                                "}]")
                                         .withStatus(200)
                         )
         );
@@ -648,7 +743,17 @@ public class RamlModelGeneratorTest {
                         .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
                         .withRequestBody(
                                 equalToJson(
-                                        "{\"author\": {\"firstName\": \"James\", \"lastName\": \"Corey\"}, \"isbn\":\"978-0-316-12908-4\", \"title\": \"Leviathan Wakes\", \"genre\": \"SciFi\", \"kind\": \"Book\"}")
+                                        "{" +
+                                                "\"author\": " +
+                                                "{" +
+                                                "\"firstName\": \"James\", " +
+                                                "\"lastName\": \"Corey\"" +
+                                                "}, " +
+                                                "\"isbn\":\"978-0-316-12908-4\", " +
+                                                "\"title\": \"Leviathan Wakes\", " +
+                                                "\"genre\": \"SciFi\", " +
+                                                "\"kind\": \"Book\"" +
+                                                "}")
                         )
                         .willReturn(aResponse()
                                 .withStatus(201)));
@@ -676,7 +781,19 @@ public class RamlModelGeneratorTest {
                 get(urlEqualTo("/books/comicbooks"))
                         .withHeader("Accept", equalTo("application/json"))
                         .willReturn(aResponse()
-                                .withBody("[{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"kind\": \"ComicBook\"}]")
+                                .withBody("[{" +
+                                        "\"author\": " +
+                                        "{" +
+                                        "\"firstName\": \"Peter\", " +
+                                        "\"lastName\": \"David\"" +
+                                        "}, " +
+                                        "\"isbn\":\"75960608623800111\", " +
+                                        "\"title\": \"The Clone Conspiracy\", " +
+                                        "\"genre\": \"SciFi\", " +
+                                        "\"hero\": \"Spiderman\", " +
+                                        "\"villain\": \"Mr. Badguy\", " +
+                                        "\"kind\": \"ComicBook\"" +
+                                        "}]")
                                 .withStatus(200)));
 
         CompletableFuture<Response<List<ComicBook>>> eventualComicBooks = client.books.comicbooks.get();
@@ -701,7 +818,19 @@ public class RamlModelGeneratorTest {
                         .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
                         .withRequestBody(
                                 equalToJson(
-                                        "{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"kind\": \"ComicBook\"}"
+                                        "{" +
+                                                "\"author\": " +
+                                                "{" +
+                                                "\"firstName\": \"Peter\", " +
+                                                "\"lastName\": \"David\"" +
+                                                "}, " +
+                                                "\"isbn\":\"75960608623800111\", " +
+                                                "\"title\": \"The Clone Conspiracy\", " +
+                                                "\"genre\": \"SciFi\", " +
+                                                "\"hero\": \"Spiderman\", " +
+                                                "\"villain\": \"Mr. Badguy\", " +
+                                                "\"kind\": \"ComicBook\"" +
+                                                "}"
                                 )
                         )
                         .willReturn(
@@ -711,7 +840,15 @@ public class RamlModelGeneratorTest {
         );
 
         Author peterDavid = new Author("Peter", "David");
-        ComicBook comicBook = new ComicBook(peterDavid, "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy");
+        ComicBook comicBook =
+                new ComicBook(
+                        peterDavid,
+                        "SciFi",
+                        "Spiderman",
+                        "75960608623800111",
+                        "The Clone Conspiracy",
+                        "Mr. Badguy"
+                );
 
         CompletableFuture<Response<String>> eventualResponse = client.books.comicbooks.post(comicBook);
 
@@ -733,7 +870,20 @@ public class RamlModelGeneratorTest {
                 get(urlEqualTo("/books/comicbooks/scificomicbooks"))
                         .withHeader("Accept", equalTo("application/json"))
                         .willReturn(aResponse()
-                                .withBody("[{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"era\": \"1990\", \"kind\": \"ScienceFictionComicBook\"}]")
+                                .withBody("[{" +
+                                        "\"author\": " +
+                                        "{" +
+                                        "\"firstName\": \"Peter\", " +
+                                        "\"lastName\": \"David\"" +
+                                        "}, " +
+                                        "\"isbn\":\"75960608623800111\", " +
+                                        "\"title\": \"The Clone Conspiracy\", " +
+                                        "\"genre\": \"SciFi\", " +
+                                        "\"hero\": \"Spiderman\", " +
+                                        "\"villain\": \"Mr. Badguy\", " +
+                                        "\"era\": \"1990\", " +
+                                        "\"kind\": \"ScienceFictionComicBook\"" +
+                                        "}]")
                                 .withStatus(200)));
 
         CompletableFuture<Response<List<SciFiComicBook>>> eventualSciFiComicBooks = client.books.comicbooks.scificomicbooks.get();
@@ -758,7 +908,20 @@ public class RamlModelGeneratorTest {
                         .withHeader("Content-Type", equalTo("application/json; charset=UTF-8"))
                         .withRequestBody(
                                 equalToJson(
-                                        "{\"author\": {\"firstName\": \"Peter\", \"lastName\": \"David\"}, \"isbn\":\"75960608623800111\", \"title\": \"The Clone Conspiracy\", \"genre\": \"SciFi\", \"hero\": \"Spiderman\", \"villain\": \"Mr. Badguy\", \"era\": \"1990\", \"kind\": \"ScienceFictionComicBook\"}"
+                                        "{" +
+                                                "\"author\": " +
+                                                "{" +
+                                                "\"firstName\": \"Peter\", " +
+                                                "\"lastName\": \"David\"" +
+                                                "}, " +
+                                                "\"isbn\":\"75960608623800111\", " +
+                                                "\"title\": \"The Clone Conspiracy\", " +
+                                                "\"genre\": \"SciFi\", " +
+                                                "\"hero\": \"Spiderman\", " +
+                                                "\"villain\": \"Mr. Badguy\", " +
+                                                "\"era\": \"1990\", " +
+                                                "\"kind\": \"ScienceFictionComicBook\"" +
+                                                "}"
                                 )
                         )
                         .willReturn(
@@ -768,7 +931,16 @@ public class RamlModelGeneratorTest {
         );
 
         Author peterDavid = new Author("Peter", "David");
-        SciFiComicBook sciFiComicBook = new SciFiComicBook(peterDavid, "1990", "SciFi", "Spiderman", "75960608623800111", "The Clone Conspiracy", "Mr. Badguy");
+        SciFiComicBook sciFiComicBook =
+                new SciFiComicBook(
+                        peterDavid,
+                        "1990",
+                        "SciFi",
+                        "Spiderman",
+                        "75960608623800111",
+                        "The Clone Conspiracy",
+                        "Mr. Badguy"
+                );
 
         CompletableFuture<Response<String>> eventualResponse = client.books.comicbooks.scificomicbooks.post(sciFiComicBook);
 
@@ -880,6 +1052,46 @@ public class RamlModelGeneratorTest {
         try {
             Response<List<Animal>> response = eventualResponse.get(10, TimeUnit.SECONDS);
             assertEquals(200, response.getStatus());
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            fail("Did not expect exception: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void differentTypesOfDateFieldsTest() {
+
+        stubFor(
+                get(urlEqualTo("/rest/zoo"))
+                        .willReturn(
+                                aResponse()
+                                        .withBody("{" +
+                                                "\"name\":\"Planckendael\", " +
+                                                "\"animals\": [], " +
+                                                "\"lunchtime\": \"12:30:00\", " +
+                                                "\"fireworks\": \"2015-07-04T21:00:00\", " +
+                                                "\"created\": \"2016-02-28T16:41:41.090Z\", " +
+                                                "\"If-Modified-Since\": \"Sun, 28 Feb 2016 16:41:41 GMT\" " +
+                                                "}")
+                                        .withStatus(200)
+                        )
+        );
+
+        CompletableFuture<Response<Zoo>> eventualZoo = client.rest.zoo.get();
+
+        try {
+            Zoo zoo = eventualZoo.get(10, TimeUnit.SECONDS).getBody();
+            DateTimeRFC3339 created = zoo.getCreated();
+            DateTimeOnly fireworks = zoo.getFireworks();
+            TimeOnly lunchtime = zoo.getLunchtime();
+            DateTimeRFC2616 ifModifiedSince = zoo.getIfModifiedSince();
+
+            assertEquals(created.getDateTime(), OffsetDateTime.parse("2016-02-28T16:41:41.090Z"));
+            assertEquals(fireworks.getDateTime(), LocalDateTime.parse("2015-07-04T21:00:00"));
+            assertEquals(lunchtime.getTime(), LocalTime.parse("12:30:00"));
+            assertEquals(
+                    ifModifiedSince.getDateTime(),
+                    OffsetDateTime.parse("Sun, 28 Feb 2016 16:41:41 GMT", DateTimeFormatter.RFC_1123_DATE_TIME)
+            );
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             fail("Did not expect exception: " + e.getMessage());
         }
