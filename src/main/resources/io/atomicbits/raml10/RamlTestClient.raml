@@ -82,6 +82,19 @@ types:
   If-Modified-Since:
     type: datetime
     format: rfc2616 # this time it's required, otherwise, the example format is invalid
+  Mamal:
+    type: object
+    properties:
+      birthday: birthday
+  Person:
+    type: Mamal
+    properties:
+      hobbies: string[]
+      lunchtime: lunchtime
+  Adult:
+    type: Person
+    properties:
+      job: string
 
 /books:
   get:
@@ -172,3 +185,12 @@ types:
         body:
           application/json:
             type: zoo
+
+# ToDo: test methods on the root url
+#/:
+#  get:
+#    description: Get the base URL
+#    responses:
+#      200:
+#        body:
+#          text/html:
